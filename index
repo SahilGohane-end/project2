@@ -1,0 +1,1261 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Foundation Website Improvement Analysis</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #382525;
+    --surface: #121219;
+    --card: #1a1a26;
+    --border: #2a2a3e;
+    --accent: #f5a623;
+    --accent2: #e85d75;
+    --accent3: #4ecdc4;
+    --accent4: #a78bfa;
+    --text: #e8e8f0;
+    --muted: #8a8aca;
+    --good: #22c55e;
+    --bad: #ef4444;
+    --warn: #f59e0b;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    overflow-x: hidden;
+    line-height: 1.6;
+  }
+
+  /* ─── NOISE OVERLAY ─── */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 0;
+    opacity: 0.4;
+  }
+
+  /* ─── HERO ─── */
+  .hero {
+    position: relative;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    padding: 3rem 2rem;
+    overflow: hidden;
+  }
+
+  .hero-blob {
+    position: absolute;
+    border-radius: 50%;
+    filter: blur(80px);
+    opacity: 0.15;
+    animation: drift 8s ease-in-out infinite alternate;
+  }
+  .blob1 { width: 500px; height: 500px; background: var(--accent); top: -100px; left: -100px; }
+  .blob2 { width: 400px; height: 400px; background: var(--accent2); bottom: -80px; right: -80px; animation-delay: 2s; }
+  .blob3 { width: 300px; height: 300px; background: var(--accent4); top: 50%; left: 50%; transform: translate(-50%,-50%); animation-delay: 4s; }
+
+  @keyframes drift {
+    from { transform: translate(0,0) scale(1); }
+    to { transform: translate(30px,30px) scale(1.1); }
+  }
+
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    background: rgba(245,166,35,0.12);
+    border: 1px solid rgba(245,166,35,0.3);
+    color: var(--accent);
+    font-family: 'DM Mono', monospace;
+    font-size: 0.75rem;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    padding: 0.4rem 1rem;
+    border-radius: 100px;
+    margin-bottom: 1.5rem;
+    position: relative;
+    z-index: 1;
+  }
+  .badge::before {
+    content: '';
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: var(--accent);
+    animation: pulse 2s infinite;
+  }
+  @keyframes pulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:0.4;transform:scale(1.5)} }
+
+  .hero h1 {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(2.5rem, 7vw, 5.5rem);
+    font-weight: 900;
+    line-height: 1.1;
+    position: relative;
+    z-index: 1;
+    margin-bottom: 1rem;
+  }
+  .hero h1 .line1 { display: block; color: var(--text); }
+  .hero h1 .line2 { display: block; color: var(--accent); }
+  .hero h1 .line3 { display: block; color: var(--muted); font-weight: 400; font-style: italic; font-size: 60%; }
+
+  .hero-sub {
+    max-width: 600px;
+    color: var(--muted);
+    font-size: 1.05rem;
+    margin-bottom: 2.5rem;
+    position: relative;
+    z-index: 1;
+  }
+
+  .hero-stats {
+    display: flex;
+    gap: 2rem;
+    justify-content: center;
+    flex-wrap: wrap;
+    position: relative;
+    z-index: 1;
+  }
+  .stat {
+    text-align: center;
+    background: var(--card);
+    border: 1px solid var(--border);
+    padding: 1rem 1.5rem;
+    border-radius: 12px;
+    min-width: 120px;
+  }
+  .stat .num {
+    font-family: 'Playfair Display', serif;
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--accent);
+  }
+  .stat .lbl { font-size: 0.75rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.1em; }
+
+  /* ─── SECTION ─── */
+  section {
+    position: relative;
+    z-index: 1;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 4rem 2rem;
+  }
+
+  .section-tag {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.7rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 0.75rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+  .section-tag::before { content: '//'; opacity: 0.4; }
+
+  .section-title {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(1.8rem, 4vw, 3rem);
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+    line-height: 1.2;
+  }
+  .section-desc { color: var(--muted); max-width: 550px; margin-bottom: 3rem; font-size: 0.95rem; }
+
+  /* ─── DIVIDER ─── */
+  .divider {
+    border: none;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--border), transparent);
+    margin: 0 2rem;
+  }
+
+  /* ─── WEBSITE MOCKUP CARD ─── */
+  .mockup-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    overflow: hidden;
+    margin-bottom: 3rem;
+    box-shadow: 0 40px 80px rgba(0,0,0,0.5);
+    animation: fadeUp 0.6s ease both;
+  }
+  @keyframes fadeUp { from{opacity:0;transform:translateY(30px)} to{opacity:1;transform:translateY(0)} }
+
+  .mockup-bar {
+    background: var(--surface);
+    padding: 0.75rem 1.25rem;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    border-bottom: 1px solid var(--border);
+  }
+  .dots { display:flex; gap:6px; }
+  .dot { width:12px; height:12px; border-radius:50%; }
+  .dot.r{background:#ef4444;} .dot.y{background:#f59e0b;} .dot.g{background:#22c55e;}
+  .url-bar {
+    flex: 1;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 0.3rem 1rem;
+    font-family: 'DM Mono', monospace;
+    font-size: 0.75rem;
+    color: var(--muted);
+  }
+
+  /* ─── ANNOTATION SYSTEM ─── */
+  .annotated {
+    position: relative;
+  }
+
+  .website-sim {
+    background: #f4f4f0;
+    min-height: 500px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  /* Simulated website sections */
+  .sim-header {
+    background: #1a2545;
+    padding: 1rem 2rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .sim-logo { width: 100px; height: 30px; background: rgba(255,255,255,0.2); border-radius: 4px; }
+  .sim-nav { display:flex; gap:1rem; }
+  .sim-nav-item { width:55px; height:12px; background:rgba(255,255,255,0.2); border-radius:2px; }
+  .sim-nav-item.cta { background:#f5a623; width:70px; }
+
+  .sim-hero {
+    background: linear-gradient(135deg, #1a2545 0%, #2d4080 100%);
+    padding: 3rem 2rem;
+    text-align: center;
+    position: relative;
+  }
+  .sim-hero-title { width:60%; height:20px; background:rgba(255,255,255,0.9); border-radius:3px; margin:0 auto 0.75rem; }
+  .sim-hero-sub { width:45%; height:12px; background:rgba(255,255,255,0.4); border-radius:2px; margin:0 auto 1.5rem; }
+  .sim-hero-cta { width:120px; height:36px; background:#f5a623; border-radius:6px; margin:0 auto; }
+
+  .sim-body { padding: 2rem; display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1rem; background: #f8f8f5; }
+  .sim-card { background: white; border-radius: 8px; padding: 1rem; box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
+  .sim-card-img { width:100%; height:60px; background:#e0e0e0; border-radius:4px; margin-bottom:0.75rem; }
+  .sim-card-title { width:80%; height:10px; background:#d0d0d0; border-radius:2px; margin-bottom:0.5rem; }
+  .sim-card-text { width:100%; height:8px; background:#e8e8e8; border-radius:2px; margin-bottom:0.3rem; }
+  .sim-card-text.short { width:65%; }
+
+  .sim-footer { background: #111; padding: 1.5rem 2rem; display:flex; justify-content:space-between; align-items:center; }
+  .sim-footer-col { display:flex; flex-direction:column; gap:6px; }
+  .sim-footer-item { width:70px; height:8px; background:rgba(255,255,255,0.15); border-radius:2px; }
+  .sim-footer-item.wide { width:100px; }
+
+  /* ─── ANNOTATION PINS ─── */
+  .pin {
+    position: absolute;
+    z-index: 10;
+    cursor: pointer;
+  }
+  .pin-dot {
+    width: 28px; height: 28px;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 700; font-size: 0.7rem;
+    font-family: 'DM Mono', monospace;
+    border: 2px solid;
+    transition: transform 0.2s, box-shadow 0.2s;
+    animation: pinPulse 3s infinite;
+    position: relative;
+  }
+  .pin:hover .pin-dot { transform: scale(1.3); }
+
+  .pin.bad .pin-dot  { background: rgba(239,68,68,0.15); border-color: var(--bad); color: var(--bad); box-shadow: 0 0 0 6px rgba(239,68,68,0.1); }
+  .pin.good .pin-dot { background: rgba(34,197,94,0.15); border-color: var(--good); color: var(--good); box-shadow: 0 0 0 6px rgba(34,197,94,0.1); }
+  .pin.warn .pin-dot { background: rgba(245,158,11,0.15); border-color: var(--warn); color: var(--warn); box-shadow: 0 0 0 6px rgba(245,158,11,0.1); }
+  @keyframes pinPulse {
+    0%,100%{box-shadow: 0 0 0 0px rgba(239,68,68,0.2)}
+    50%{box-shadow: 0 0 0 10px rgba(239,68,68,0)}
+  }
+  .pin.good .pin-dot { animation: pinPulseGood 3s infinite; }
+  @keyframes pinPulseGood {
+    0%,100%{box-shadow: 0 0 0 0px rgba(34,197,94,0.2)}
+    50%{box-shadow: 0 0 0 10px rgba(34,197,94,0)}
+  }
+
+  .pin-label {
+    position: absolute;
+    left: 36px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: var(--bg);
+    border: 1px solid var(--border);
+    padding: 0.3rem 0.7rem;
+    border-radius: 6px;
+    font-size: 0.7rem;
+    white-space: nowrap;
+    color: var(--text);
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.2s;
+    font-family: 'DM Sans', sans-serif;
+  }
+  .pin:hover .pin-label { opacity: 1; }
+
+  .pin.left .pin-label { left: auto; right: 36px; }
+
+  /* ─── ISSUE GRID ─── */
+  .issues-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+    gap: 1.5rem;
+    margin-top: 0;
+  }
+
+  .issue-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 1.5rem;
+    position: relative;
+    overflow: hidden;
+    transition: transform 0.2s, border-color 0.2s;
+    animation: fadeUp 0.5s ease both;
+  }
+  .issue-card:hover { transform: translateY(-4px); }
+  .issue-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+  }
+  .issue-card.bad::before { background: var(--bad); border-color: rgba(239,68,68,0.2); }
+  .issue-card.warn::before { background: var(--warn); border-color: rgba(245,158,11,0.2); }
+  .issue-card.good::before { background: var(--good); border-color: rgba(34,197,94,0.2); }
+
+  .issue-card:hover { border-color: rgba(245,166,35,0.3); }
+
+  .issue-header {
+    display: flex;
+    align-items: flex-start;
+    gap: 1rem;
+    margin-bottom: 1rem;
+  }
+
+  .issue-num {
+    width: 36px; height: 36px; min-width: 36px;
+    border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'DM Mono', monospace;
+    font-size: 0.75rem;
+    font-weight: 600;
+  }
+  .issue-card.bad .issue-num  { background:rgba(239,68,68,0.15); color:var(--bad); }
+  .issue-card.warn .issue-num { background:rgba(245,158,11,0.15); color:var(--warn); }
+  .issue-card.good .issue-num { background:rgba(34,197,94,0.15); color:var(--good); }
+
+  .issue-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--text);
+    line-height: 1.3;
+  }
+
+  .issue-meta {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+    margin-bottom: 0.75rem;
+  }
+  .tag {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.65rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    padding: 0.2rem 0.6rem;
+    border-radius: 100px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    color: var(--muted);
+  }
+  .tag.ux { border-color:rgba(78,205,196,0.4); color:var(--accent3); }
+  .tag.perf { border-color:rgba(167,139,250,0.4); color:var(--accent4); }
+  .tag.seo { border-color:rgba(245,166,35,0.4); color:var(--accent); }
+  .tag.access { border-color:rgba(232,93,117,0.4); color:var(--accent2); }
+  .tag.visual { border-color:rgba(34,197,94,0.4); color:var(--good); }
+
+  .issue-body {
+    font-size: 0.875rem;
+    color: var(--muted);
+    line-height: 1.7;
+    margin-bottom: 1rem;
+  }
+
+  .fix-box {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 0.875rem 1rem;
+  }
+  .fix-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.65rem;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 0.4rem;
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+  }
+  .fix-label::before { content:'→'; }
+  .fix-text { font-size: 0.825rem; color: var(--text); line-height: 1.6; }
+
+  .priority {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    margin-top: 1rem;
+    font-size: 0.75rem;
+    color: var(--muted);
+  }
+  .priority-bar {
+    flex: 1;
+    height: 4px;
+    background: var(--border);
+    border-radius: 2px;
+    overflow: hidden;
+  }
+  .priority-fill {
+    height: 100%;
+    border-radius: 2px;
+    transition: width 1s ease;
+  }
+  .p-high .priority-fill { background: var(--bad); width: 90%; }
+  .p-med .priority-fill  { background: var(--warn); width: 55%; }
+  .p-low .priority-fill  { background: var(--good); width: 25%; }
+
+  /* ─── BEFORE / AFTER ─── */
+  .ba-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.5rem;
+    margin-top: 0;
+  }
+  @media(max-width:700px){ .ba-grid{ grid-template-columns:1fr; } }
+
+  .ba-card {
+    border-radius: 16px;
+    overflow: hidden;
+    border: 1px solid var(--border);
+    animation: fadeUp 0.6s ease both;
+  }
+  .ba-header {
+    padding: 0.75rem 1.25rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-family: 'DM Mono', monospace;
+    font-size: 0.75rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    font-weight: 500;
+  }
+  .ba-card.before .ba-header { background: rgba(239,68,68,0.1); color: var(--bad); }
+  .ba-card.after  .ba-header { background: rgba(34,197,94,0.1); color: var(--good); }
+  .ba-body { background: var(--card); padding: 1.5rem; }
+
+  /* Simulated UI elements */
+  .nav-old { background:#2d2d2d; padding:0.75rem 1.5rem; display:flex; gap:0.75rem; overflow:hidden; }
+  .nav-old .item { background:#444; padding:0.4rem 0.8rem; border-radius:3px; font-size:0.65rem; color:#aaa; white-space:nowrap; }
+  .nav-old .item.active { background:#666; color:white; }
+
+  .nav-new {
+    background: white;
+    padding: 0.75rem 1.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+  }
+  .nav-new .logo-new { font-family:'Playfair Display',serif; font-size:1rem; font-weight:700; color:#1a2545; }
+  .nav-new .links { display:flex; gap:1rem; }
+  .nav-new .link-item { font-size:0.7rem; color:#555; padding:0.3rem 0.5rem; border-radius:4px; }
+  .nav-new .link-item.cta-btn { background:#1a2545; color:white; padding:0.3rem 0.75rem; border-radius:6px; }
+
+  .hero-old { background:#1a2545; padding:2.5rem 1.5rem; text-align:center; }
+  .hero-old-text1 { color:rgba(255,255,255,0.5); font-size:0.7rem; margin-bottom:0.5rem; }
+  .hero-old-text2 { color:white; font-size:0.9rem; font-weight:700; margin-bottom:0.5rem; line-height:1.3; }
+  .hero-old-text3 { color:rgba(255,255,255,0.4); font-size:0.65rem; margin-bottom:1rem; }
+  .hero-old-btn { background:#f5a623; color:white; font-size:0.65rem; padding:0.5rem 1rem; border-radius:4px; display:inline-block; }
+
+  .hero-new { background: linear-gradient(135deg, #0f1c3f 0%, #1a3a6e 100%); padding:2.5rem 1.5rem; text-align:center; position:relative; overflow:hidden; }
+  .hero-new::before { content:''; position:absolute; inset:0; background:url("data:image/svg+xml,%3Csvg width='40' height='40' viewBox='0 0 40 40' xmlns='http://www.w3.org/2000/svg'%3E%3Ccircle cx='20' cy='20' r='1' fill='rgba(255,255,255,0.05)'/%3E%3C/svg%3E"); }
+  .hero-new-eyebrow { display:inline-block; background:rgba(245,166,35,0.2); border:1px solid rgba(245,166,35,0.4); color:#f5a623; font-size:0.6rem; padding:0.2rem 0.6rem; border-radius:100px; margin-bottom:0.6rem; letter-spacing:0.1em; text-transform:uppercase; }
+  .hero-new-title { color:white; font-size:1.1rem; font-weight:800; margin-bottom:0.5rem; line-height:1.2; font-family:'Playfair Display',serif; }
+  .hero-new-sub { color:rgba(255,255,255,0.6); font-size:0.65rem; margin-bottom:1rem; max-width:280px; margin-left:auto; margin-right:auto; }
+  .hero-new-btns { display:flex; gap:0.5rem; justify-content:center; }
+  .hero-new-btn { font-size:0.65rem; padding:0.5rem 1rem; border-radius:6px; }
+  .btn-primary { background:#f5a623; color:white; }
+  .btn-secondary { background:rgba(255,255,255,0.1); color:white; border:1px solid rgba(255,255,255,0.2); }
+
+  /* ─── SCORECARD ─── */
+  .scorecard {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 2.5rem;
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 3rem;
+    align-items: center;
+    margin-bottom: 3rem;
+    animation: fadeUp 0.6s ease both;
+  }
+  @media(max-width:700px){ .scorecard{ grid-template-columns:1fr; gap:1.5rem; } }
+
+  .score-ring {
+    position: relative;
+    width: 160px; height: 160px;
+  }
+  .score-ring svg { transform: rotate(-90deg); }
+  .score-ring circle.bg { fill: none; stroke: var(--border); stroke-width: 12; }
+  .score-ring circle.fill {
+    fill: none; stroke-width: 12; stroke-linecap: round;
+    stroke-dasharray: 408;
+    stroke-dashoffset: 200;
+    stroke: var(--warn);
+    transition: stroke-dashoffset 2s ease;
+  }
+  .score-num {
+    position: absolute;
+    inset: 0;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    font-family: 'Playfair Display', serif;
+  }
+  .score-num .big { font-size: 2.5rem; font-weight: 900; color: var(--warn); line-height:1; }
+  .score-num .sm  { font-size: 0.7rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.1em; }
+
+  .score-bars { width: 100%; }
+  .score-row { display:grid; grid-template-columns: 130px 1fr 40px; gap:1rem; align-items:center; margin-bottom:1rem; }
+  .score-label { font-size: 0.8rem; color: var(--muted); }
+  .score-track { background: var(--border); border-radius: 100px; height: 6px; overflow: hidden; }
+  .score-fill { height:100%; border-radius:100px; transition: width 1.5s ease; }
+  .score-val { font-family:'DM Mono',monospace; font-size:0.75rem; color:var(--text); text-align:right; }
+
+  /* ─── RECOMMENDATIONS ─── */
+  .rec-list { display:flex; flex-direction:column; gap:1rem; }
+  .rec-item {
+    display: grid;
+    grid-template-columns: 40px 1fr auto;
+    gap: 1rem;
+    align-items: start;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 1.25rem;
+    transition: border-color 0.2s, transform 0.2s;
+    animation: fadeUp 0.5s ease both;
+  }
+  .rec-item:hover { border-color: var(--accent); transform: translateX(4px); }
+
+  .rec-icon {
+    width:40px; height:40px; border-radius:10px;
+    display:flex; align-items:center; justify-content:center;
+    font-size:1.2rem;
+    background:var(--surface);
+  }
+  .rec-content {}
+  .rec-title { font-weight:600; font-size:0.9rem; margin-bottom:0.25rem; }
+  .rec-desc { font-size:0.8rem; color:var(--muted); line-height:1.6; }
+
+  .effort {
+    display:flex; flex-direction:column; align-items:flex-end; gap:0.25rem; min-width:70px;
+  }
+  .effort-label { font-family:'DM Mono',monospace; font-size:0.6rem; text-transform:uppercase; letter-spacing:0.1em; color:var(--muted); }
+  .effort-badge { font-size:0.7rem; padding:0.2rem 0.6rem; border-radius:100px; font-weight:600; }
+  .effort-badge.low  { background:rgba(34,197,94,0.15); color:var(--good); }
+  .effort-badge.med  { background:rgba(245,158,11,0.15); color:var(--warn); }
+  .effort-badge.high { background:rgba(239,68,68,0.15); color:var(--bad); }
+
+  /* ─── ROADMAP ─── */
+  .roadmap {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1.5rem;
+    margin-top: 0;
+  }
+  @media(max-width:700px){ .roadmap{ grid-template-columns:1fr; } }
+
+  .roadmap-col {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    overflow: hidden;
+    animation: fadeUp 0.6s ease both;
+  }
+  .roadmap-head {
+    padding: 1rem 1.25rem;
+    font-family: 'DM Mono', monospace;
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+  .roadmap-col:nth-child(1) .roadmap-head { color:var(--bad); }
+  .roadmap-col:nth-child(2) .roadmap-head { color:var(--warn); }
+  .roadmap-col:nth-child(3) .roadmap-head { color:var(--good); }
+
+  .roadmap-item {
+    padding: 0.875rem 1.25rem;
+    border-bottom: 1px solid var(--border);
+    font-size: 0.8rem;
+    color: var(--muted);
+    display: flex;
+    align-items: flex-start;
+    gap: 0.6rem;
+    transition: background 0.2s;
+  }
+  .roadmap-item:hover { background: var(--surface); color: var(--text); }
+  .roadmap-item::before { content:'◇'; opacity:0.4; margin-top:0.1rem; }
+  .roadmap-item:last-child { border-bottom:none; }
+
+  /* ─── FOOTER ─── */
+  .site-footer {
+    position: relative; z-index:1;
+    text-align: center;
+    padding: 3rem 2rem;
+    border-top: 1px solid var(--border);
+    color: var(--muted);
+    font-size: 0.8rem;
+  }
+  .site-footer strong { color: var(--accent); }
+
+  /* scroll animation */
+  .reveal { opacity:0; transform:translateY(20px); transition: opacity 0.6s ease, transform 0.6s ease; }
+  .reveal.in  { opacity:1; transform:translateY(0); }
+</style>
+</head>
+<body>
+
+<!-- ─── HERO ─── -->
+<div class="hero">
+  <div class="hero-blob blob1"></div>
+  <div class="hero-blob blob2"></div>
+  <div class="hero-blob blob3"></div>
+
+  <div class="badge">UX Audit Report · 2026</div>
+  <h1>
+    <span class="line1">Foundation Website</span>
+    <span class="line2">Improvement Analysis</span>
+    <span class="line3">A comprehensive UX, Performance & Accessibility Review</span>
+  </h1>
+  <p class="hero-sub">
+    A detailed examination of the foundation's digital presence — identifying friction points, missed opportunities, and actionable design improvements with annotated mockups.
+  </p>
+  <div class="hero-stats">
+    <div class="stat"><div class="num">9</div><div class="lbl">Issues Found</div></div>
+    <div class="stat"><div class="num">47</div><div class="lbl">Overall Score</div></div>
+    <div class="stat"><div class="num">5</div><div class="lbl">Critical Fixes</div></div>
+    <div class="stat"><div class="num">3</div><div class="lbl">Phase Roadmap</div></div>
+  </div>
+</div>
+
+<hr class="divider">
+
+<!-- ─── OVERALL SCORE ─── -->
+<section>
+
+  <h2 class="section-title">Website Health Scorecard</h2>
+  <p class="section-desc">Scores across 5 key dimensions — UX, Performance, SEO, Accessibility, and Visual Design — before proposed improvements.</p>
+
+  <div class="scorecard reveal">
+    <div class="score-ring">
+      <svg width="160" height="160" viewBox="0 0 160 160">
+        <circle class="bg" cx="80" cy="80" r="65"/>
+        <circle class="fill" cx="80" cy="80" r="65" style="stroke-dashoffset:218;"/>
+      </svg>
+      <div class="score-num">
+        <span class="big">47</span>
+        <span class="sm">/ 100</span>
+      </div>
+    </div>
+
+    <div class="score-bars">
+      <div class="score-row">
+        <span class="score-label">UX & Navigation</span>
+        <div class="score-track"><div class="score-fill" style="width:38%;background:var(--bad);"></div></div>
+        <span class="score-val">38</span>
+      </div>
+      <div class="score-row">
+        <span class="score-label">Performance</span>
+        <div class="score-track"><div class="score-fill" style="width:42%;background:var(--bad);"></div></div>
+        <span class="score-val">42</span>
+      </div>
+      <div class="score-row">
+        <span class="score-label">SEO</span>
+        <div class="score-track"><div class="score-fill" style="width:55%;background:var(--warn);"></div></div>
+        <span class="score-val">55</span>
+      </div>
+      <div class="score-row">
+        <span class="score-label">Accessibility</span>
+        <div class="score-track"><div class="score-fill" style="width:30%;background:var(--bad);"></div></div>
+        <span class="score-val">30</span>
+      </div>
+      <div class="score-row">
+        <span class="score-label">Visual Design</span>
+        <div class="score-track"><div class="score-fill" style="width:60%;background:var(--warn);"></div></div>
+        <span class="score-val">60</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<hr class="divider">
+
+<!-- ─── ANNOTATED MOCKUP ─── -->
+<section>
+
+  <h2 class="section-title">Annotated Website Mockup</h2>
+  <p class="section-desc">Hover over the numbered pins on the website preview to see each identified issue. Red = critical, Yellow = warning, Green = strength.</p>
+
+  <div class="mockup-card reveal">
+    <div class="mockup-bar">
+      <div class="dots">
+        <div class="dot r"></div><div class="dot y"></div><div class="dot g"></div>
+      </div>
+      <div class="url-bar">https://www.ourefoundation.org</div>
+    </div>
+
+    <div class="annotated">
+      <div class="website-sim">
+
+        <!-- HEADER -->
+        <div class="sim-header">
+          <div class="sim-logo"></div>
+          <div class="sim-nav">
+            <div class="sim-nav-item"></div>
+            <div class="sim-nav-item"></div>
+            <div class="sim-nav-item"></div>
+            <div class="sim-nav-item"></div>
+            <div class="sim-nav-item cta"></div>
+          </div>
+        </div>
+
+        <!-- HERO -->
+        <div class="sim-hero">
+          <div class="sim-hero-title"></div>
+          <div class="sim-hero-sub"></div>
+          <div class="sim-hero-cta"></div>
+        </div>
+
+        <!-- BODY -->
+        <div class="sim-body">
+          <div class="sim-card"><div class="sim-card-img"></div><div class="sim-card-title"></div><div class="sim-card-text"></div><div class="sim-card-text short"></div></div>
+          <div class="sim-card"><div class="sim-card-img"></div><div class="sim-card-title"></div><div class="sim-card-text"></div><div class="sim-card-text short"></div></div>
+          <div class="sim-card"><div class="sim-card-img"></div><div class="sim-card-title"></div><div class="sim-card-text"></div><div class="sim-card-text short"></div></div>
+        </div>
+
+        <!-- FOOTER -->
+        <div class="sim-footer">
+          <div class="sim-footer-col"><div class="sim-footer-item wide"></div><div class="sim-footer-item"></div><div class="sim-footer-item"></div></div>
+          <div class="sim-footer-col"><div class="sim-footer-item"></div><div class="sim-footer-item"></div></div>
+          <div class="sim-footer-col"><div class="sim-footer-item wide"></div><div class="sim-footer-item"></div></div>
+        </div>
+
+        <!-- ANNOTATION PINS -->
+        <div class="pin bad" style="top:18px;left:50%;">
+          <div class="pin-dot">1</div>
+          <div class="pin-label">No mobile hamburger menu</div>
+        </div>
+        <div class="pin bad" style="top:18px;right:20px;">
+          <div class="pin-dot">2</div>
+          <div class="pin-label left">Donate CTA poorly visible</div>
+        </div>
+        <div class="pin bad" style="top:110px;left:20px;">
+          <div class="pin-dot">3</div>
+          <div class="pin-label">Hero lacks trust signals</div>
+        </div>
+        <div class="pin warn" style="top:110px;right:20px;">
+          <div class="pin-dot">4</div>
+          <div class="pin-label left">Single CTA — no secondary action</div>
+        </div>
+        <div class="pin good" style="top:230px;left:20px;">
+          <div class="pin-dot">5</div>
+          <div class="pin-label">Card layout is clean ✓</div>
+        </div>
+        <div class="pin bad" style="top:270px;left:50%;">
+          <div class="pin-dot">6</div>
+          <div class="pin-label">Images missing alt text</div>
+        </div>
+        <div class="pin warn" style="top:270px;right:20px;">
+          <div class="pin-dot">7</div>
+          <div class="pin-label left">Low contrast text</div>
+        </div>
+        <div class="pin bad" style="top:370px;left:20px;">
+          <div class="pin-dot">8</div>
+          <div class="pin-label">Footer missing social links</div>
+        </div>
+        <div class="pin warn" style="top:370px;right:20px;">
+          <div class="pin-dot">9</div>
+          <div class="pin-label left">No newsletter signup</div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- LEGEND -->
+  <div style="display:flex;gap:1.5rem;flex-wrap:wrap;justify-content:center;margin-top:-1rem;">
+    <div style="display:flex;align-items:center;gap:0.5rem;font-size:0.8rem;color:var(--muted);">
+      <div style="width:14px;height:14px;border-radius:50%;background:var(--bad);"></div> Critical Issue
+    </div>
+    <div style="display:flex;align-items:center;gap:0.5rem;font-size:0.8rem;color:var(--muted);">
+      <div style="width:14px;height:14px;border-radius:50%;background:var(--warn);"></div> Improvement Needed
+    </div>
+    <div style="display:flex;align-items:center;gap:0.5rem;font-size:0.8rem;color:var(--muted);">
+      <div style="width:14px;height:14px;border-radius:50%;background:var(--good);"></div> Current Strength
+    </div>
+  </div>
+</section>
+
+<hr class="divider">
+
+<!-- ─── ISSUE CARDS ─── -->
+<section>
+
+  <h2 class="section-title">Issues & Recommendations</h2>
+  <p class="section-desc">Each annotated pin expanded into a full issue brief with context, impact, and a concrete fix.</p>
+
+  <div class="issues-grid">
+
+    <div class="issue-card bad reveal" style="animation-delay:0.05s">
+      <div class="issue-header">
+        <div class="issue-num">01</div>
+        <div class="issue-title">No Responsive Navigation for Mobile</div>
+      </div>
+      <div class="issue-meta">
+        <span class="tag ux">UX</span><span class="tag access">Accessibility</span>
+      </div>
+      <p class="issue-body">The navigation bar collapses poorly on screens below 768px. Items are clipped or invisible. Over 60% of non-profit site traffic now comes from mobile devices — this directly reduces donation conversions.</p>
+      <div class="fix-box">
+        <div class="fix-label">Recommended Fix</div>
+        <div class="fix-text">Implement a hamburger menu with a slide-out drawer. Ensure touch targets are at least 44×44px. Test on iOS Safari and Android Chrome.</div>
+      </div>
+      <div class="priority p-high">
+        <span style="font-size:0.7rem;color:var(--muted);">Priority</span>
+        <div class="priority-bar"><div class="priority-fill"></div></div>
+        <span style="font-size:0.7rem;color:var(--bad);">High</span>
+      </div>
+    </div>
+
+    <div class="issue-card bad reveal" style="animation-delay:0.1s">
+      <div class="issue-header">
+        <div class="issue-num">02</div>
+        <div class="issue-title">Donate Button Has Poor Visual Hierarchy</div>
+      </div>
+      <div class="issue-meta">
+        <span class="tag ux">UX</span><span class="tag visual">Visual</span>
+      </div>
+      <p class="issue-body">The primary "Donate" call-to-action blends in with the surrounding navigation links. It doesn't stand out sufficiently, causing users to miss it — especially in a crowded navigation bar.</p>
+      <div class="fix-box">
+        <div class="fix-label">Recommended Fix</div>
+        <div class="fix-text">Style the Donate button with a high-contrast background (e.g. amber #F5A623 on dark navy) and increase padding. Add a subtle animation on page load to draw attention.</div>
+      </div>
+      <div class="priority p-high">
+        <span style="font-size:0.7rem;color:var(--muted);">Priority</span>
+        <div class="priority-bar"><div class="priority-fill"></div></div>
+        <span style="font-size:0.7rem;color:var(--bad);">High</span>
+      </div>
+    </div>
+
+    <div class="issue-card bad reveal" style="animation-delay:0.15s">
+      <div class="issue-header">
+        <div class="issue-num">03</div>
+        <div class="issue-title">Hero Section Lacks Trust Signals</div>
+      </div>
+      <div class="issue-meta">
+        <span class="tag ux">UX</span><span class="tag seo">Credibility</span>
+      </div>
+      <p class="issue-body">First-time visitors see a generic hero banner with no impact numbers, testimonials, or certifications. Trust is the biggest conversion lever for non-profits — without it, bounce rate stays high.</p>
+      <div class="fix-box">
+        <div class="fix-label">Recommended Fix</div>
+        <div class="fix-text">Add impact stats (e.g. "₹2.4Cr raised · 8,000 lives changed") below the headline. Include NGO certification badges and a brief founder quote. Test with 2–3 variations.</div>
+      </div>
+      <div class="priority p-high">
+        <span style="font-size:0.7rem;color:var(--muted);">Priority</span>
+        <div class="priority-bar"><div class="priority-fill"></div></div>
+        <span style="font-size:0.7rem;color:var(--bad);">High</span>
+      </div>
+    </div>
+
+    <div class="issue-card warn reveal" style="animation-delay:0.2s">
+      <div class="issue-header">
+        <div class="issue-num">04</div>
+        <div class="issue-title">Single CTA With No Secondary Path</div>
+      </div>
+      <div class="issue-meta">
+        <span class="tag ux">UX</span><span class="tag visual">Conversion</span>
+      </div>
+      <p class="issue-body">The hero presents one action — "Donate Now" — with no softer secondary option. Visitors who aren't ready to donate have nowhere to go, increasing exit rates from people who could become future donors.</p>
+      <div class="fix-box">
+        <div class="fix-label">Recommended Fix</div>
+        <div class="fix-text">Add a ghost/outline secondary CTA: "Learn Our Story →". This gives undecided visitors a path to explore without feeling pressured, improving session depth.</div>
+      </div>
+      <div class="priority p-med">
+        <span style="font-size:0.7rem;color:var(--muted);">Priority</span>
+        <div class="priority-bar"><div class="priority-fill"></div></div>
+        <span style="font-size:0.7rem;color:var(--warn);">Medium</span>
+      </div>
+    </div>
+
+    <div class="issue-card bad reveal" style="animation-delay:0.25s">
+      <div class="issue-header">
+        <div class="issue-num">06</div>
+        <div class="issue-title">All Program Images Missing Alt Text</div>
+      </div>
+      <div class="issue-meta">
+        <span class="tag access">Accessibility</span><span class="tag seo">SEO</span>
+      </div>
+      <p class="issue-body">Every image in the program cards section has an empty or absent alt attribute. This causes WCAG 2.1 Level A failures and removes meaningful content for search engine indexing.</p>
+      <div class="fix-box">
+        <div class="fix-label">Recommended Fix</div>
+        <div class="fix-text">Audit all <code>&lt;img&gt;</code> tags and write descriptive alt text (e.g. "Students attending literacy workshop in rural Maharashtra"). Aim for under 125 characters per description.</div>
+      </div>
+      <div class="priority p-high">
+        <span style="font-size:0.7rem;color:var(--muted);">Priority</span>
+        <div class="priority-bar"><div class="priority-fill"></div></div>
+        <span style="font-size:0.7rem;color:var(--bad);">High</span>
+      </div>
+    </div>
+
+    <div class="issue-card warn reveal" style="animation-delay:0.3s">
+      <div class="issue-header">
+        <div class="issue-num">07</div>
+        <div class="issue-title">Text Contrast Fails WCAG AA</div>
+      </div>
+      <div class="issue-meta">
+        <span class="tag access">Accessibility</span><span class="tag visual">Visual</span>
+      </div>
+      <p class="issue-body">Secondary body copy is rendered in light grey (#a0a0a0) on a white background — achieving a contrast ratio of only 2.8:1, far below the required 4.5:1 for normal text.</p>
+      <div class="fix-box">
+        <div class="fix-label">Recommended Fix</div>
+        <div class="fix-text">Darken secondary text to at least #757575 (4.6:1 ratio). Use the WebAIM Contrast Checker during design reviews. Set a CSS variable for muted text to apply the fix globally.</div>
+      </div>
+      <div class="priority p-high">
+        <span style="font-size:0.7rem;color:var(--muted);">Priority</span>
+        <div class="priority-bar"><div class="priority-fill"></div></div>
+        <span style="font-size:0.7rem;color:var(--bad);">High</span>
+      </div>
+    </div>
+
+    <div class="issue-card bad reveal" style="animation-delay:0.35s">
+      <div class="issue-header">
+        <div class="issue-num">08</div>
+        <div class="issue-title">Footer Lacks Social Media Links</div>
+      </div>
+      <div class="issue-meta">
+        <span class="tag ux">UX</span><span class="tag seo">SEO</span>
+      </div>
+      <p class="issue-body">The footer contains copyright and navigation links but no social media icons or handles. Social presence is critical for non-profits to build community, share impact stories, and attract new donors.</p>
+      <div class="fix-box">
+        <div class="fix-label">Recommended Fix</div>
+        <div class="fix-text">Add iconographic social links (Instagram, Facebook, Twitter/X, YouTube) with appropriate aria-labels. Link to active accounts and consider adding a "Follow us for impact updates" prompt.</div>
+      </div>
+      <div class="priority p-med">
+        <span style="font-size:0.7rem;color:var(--muted);">Priority</span>
+        <div class="priority-bar"><div class="priority-fill"></div></div>
+        <span style="font-size:0.7rem;color:var(--warn);">Medium</span>
+      </div>
+    </div>
+
+    <div class="issue-card warn reveal" style="animation-delay:0.4s">
+      <div class="issue-header">
+        <div class="issue-num">09</div>
+        <div class="issue-title">No Email Newsletter Capture</div>
+      </div>
+      <div class="issue-meta">
+        <span class="tag ux">UX</span><span class="tag visual">Conversion</span>
+      </div>
+      <p class="issue-body">There's no mechanism to capture visitor emails. Email remains the highest-ROI channel for non-profit fundraising. Without a list, the foundation cannot run campaigns, impact updates, or year-end fundraising drives.</p>
+      <div class="fix-box">
+        <div class="fix-label">Recommended Fix</div>
+        <div class="fix-text">Add a simple email signup in the footer or as a mid-page interstitial: "Get monthly impact reports →". Integrate with Mailchimp or equivalent. Offer a free resource download as incentive.</div>
+      </div>
+      <div class="priority p-med">
+        <span style="font-size:0.7rem;color:var(--muted);">Priority</span>
+        <div class="priority-bar"><div class="priority-fill"></div></div>
+        <span style="font-size:0.7rem;color:var(--warn);">Medium</span>
+      </div>
+    </div>
+
+    <div class="issue-card good reveal" style="animation-delay:0.45s">
+      <div class="issue-header">
+        <div class="issue-num">05</div>
+        <div class="issue-title">Program Card Layout Is Clean ✓</div>
+      </div>
+      <div class="issue-meta">
+        <span class="tag visual">Strength</span>
+      </div>
+      <p class="issue-body">The three-column grid layout for program showcases is well-structured, creating clear visual separation between initiatives. The card pattern scales naturally for adding more programs.</p>
+      <div class="fix-box">
+        <div class="fix-label">Opportunity to Enhance</div>
+        <div class="fix-text">Preserve this layout but add a hover interaction (gentle lift + color accent) and a "Learn More →" link on each card. Consider a filter/tab system if programs grow beyond 6.</div>
+      </div>
+      <div class="priority p-low">
+        <span style="font-size:0.7rem;color:var(--muted);">Priority</span>
+        <div class="priority-bar"><div class="priority-fill"></div></div>
+        <span style="font-size:0.7rem;color:var(--good);">Low</span>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<hr class="divider">
+
+<!-- ─── BEFORE / AFTER ─── -->
+<section>
+
+  <h2 class="section-title">Before & After Designs</h2>
+  <p class="section-desc">Side-by-side comparison of current and proposed improved UI components.</p>
+
+  <div style="margin-bottom:2rem;">
+    <p style="font-family:'DM Mono',monospace;font-size:0.7rem;text-transform:uppercase;letter-spacing:0.15em;color:var(--accent);margin-bottom:0.75rem;">Navigation Bar</p>
+    <div class="ba-grid reveal">
+      <div class="ba-card before">
+        <div class="ba-header">✗ Current — Cluttered & Inaccessible</div>
+        <div class="ba-body">
+          <div class="nav-old">
+            <div class="item active">Home</div>
+            <div class="item">About Foundation</div>
+            <div class="item">Programs & Initiatives</div>
+            <div class="item">Gallery</div>
+            <div class="item">News</div>
+            <div class="item">Contact Us</div>
+            <div class="item">Donate Now</div>
+          </div>
+          <p style="font-size:0.75rem;color:var(--muted);margin-top:1rem;">❌ All items same visual weight &nbsp;❌ No CTA differentiation &nbsp;❌ Overflows on mobile</p>
+        </div>
+      </div>
+      <div class="ba-card after">
+        <div class="ba-header">✓ Improved — Clear Hierarchy</div>
+        <div class="ba-body">
+          <div class="nav-new">
+            <div class="logo-new">Foundation</div>
+            <div class="links">
+              <div class="link-item">About</div>
+              <div class="link-item">Programs</div>
+              <div class="link-item">Impact</div>
+              <div class="link-item">News</div>
+              <div class="link-item cta-btn">Donate →</div>
+            </div>
+          </div>
+          <p style="font-size:0.75rem;color:var(--muted);margin-top:1rem;">✅ Donate CTA visually stands out &nbsp;✅ Fewer, cleaner links &nbsp;✅ Hamburger menu on mobile</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div>
+    <p style="font-family:'DM Mono',monospace;font-size:0.7rem;text-transform:uppercase;letter-spacing:0.15em;color:var(--accent);margin-bottom:0.75rem;">Hero Section</p>
+    <div class="ba-grid reveal">
+      <div class="ba-card before">
+        <div class="ba-header">✗ Current — No Trust, One Action</div>
+        <div class="ba-body">
+          <div class="hero-old">
+            <div class="hero-old-text1">WELCOME TO OUR FOUNDATION</div>
+            <div class="hero-old-text2">We work for a better world through education and community support programs across India</div>
+            <div class="hero-old-text3">Join us in our mission to create lasting change</div>
+            <div class="hero-old-btn">DONATE NOW</div>
+          </div>
+          <p style="font-size:0.75rem;color:var(--muted);margin-top:1rem;">❌ No stats or credibility &nbsp;❌ Generic text &nbsp;❌ Single CTA only</p>
+        </div>
+      </div>
+      <div class="ba-card after">
+        <div class="ba-header">✓ Improved — Trust + Dual CTA</div>
+        <div class="ba-body">
+          <div class="hero-new">
+            <div class="hero-new-eyebrow">Registered NGO · FCRA Approved</div>
+            <div class="hero-new-title">Empowering 8,000+ Lives Through Education</div>
+            <div class="hero-new-sub">We've raised ₹2.4 crore and built 12 community learning centres across Maharashtra since 2018.</div>
+            <div class="hero-new-btns">
+              <div class="hero-new-btn btn-primary">Donate Today →</div>
+              <div class="hero-new-btn btn-secondary">Our Impact ↓</div>
+            </div>
+          </div>
+          <p style="font-size:0.75rem;color:var(--muted);margin-top:1rem;">✅ Impact numbers build trust &nbsp;✅ Certification badge &nbsp;✅ Dual CTA for all visitors</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<hr class="divider">
+
+<!-- ─── QUICK WINS ─── -->
+<section>
+
+  <h2 class="section-title">Quick Wins & Effort Map</h2>
+  <p class="section-desc">Prioritized list of improvements sorted by impact-to-effort ratio.</p>
+
+  <div class="rec-list">
+    <div class="rec-item reveal" style="animation-delay:0.05s">
+      <div class="rec-icon">🎯</div>
+      <div class="rec-content">
+        <div class="rec-title">Add Alt Text to All Images</div>
+        <div class="rec-desc">A 30-minute fix with outsized accessibility and SEO impact. Create a content checklist and assign to the next site update sprint.</div>
+      </div>
+      <div class="effort"><span class="effort-label">Effort</span><span class="effort-badge low">Low</span></div>
+    </div>
+
+    <div class="rec-item reveal" style="animation-delay:0.1s">
+      <div class="rec-icon">🎨</div>
+      <div class="rec-content">
+        <div class="rec-title">Fix Text Contrast Across the Site</div>
+        <div class="rec-desc">Update a single CSS variable for muted text color. Darkening from #a0a0a0 to #757575 resolves all WCAG AA failures instantly.</div>
+      </div>
+      <div class="effort"><span class="effort-label">Effort</span><span class="effort-badge low">Low</span></div>
+    </div>
+
+    <div class="rec-item reveal" style="animation-delay:0.15s">
+      <div class="rec-icon">💳</div>
+      <div class="rec-content">
+        <div class="rec-title">Redesign Donate Button with High Contrast</div>
+        <div class="rec-desc">Restyle existing button element — no structural changes needed. Add padding, distinctive color, and aria-label. Expected conversion lift: 15–30%.</div>
+      </div>
+      <div class="effort"><span class="effort-label">Effort</span><span class="effort-badge low">Low</span></div>
+    </div>
+
+    <div class="rec-item reveal" style="animation-delay:0.2s">
+      <div class="rec-icon">📊</div>
+      <div class="rec-content">
+        <div class="rec-title">Add Trust Statistics to Hero Section</div>
+        <div class="rec-desc">Copy-level update — add 3 impact numbers and a charity certification badge. Design a 2-hour task. Expected impact on donor conversion: significant.</div>
+      </div>
+      <div class="effort"><span class="effort-label">Effort</span><span class="effort-badge med">Medium</span></div>
+    </div>
+
+    <div class="rec-item reveal" style="animation-delay:0.25s">
+      <div class="rec-icon">📱</div>
+      <div class="rec-content">
+        <div class="rec-title">Implement Responsive Mobile Navigation</div>
+        <div class="rec-desc">Add hamburger menu with CSS-driven slide-out drawer. Full mobile testing required. This is the single highest-impact technical fix given mobile traffic share.</div>
+      </div>
+      <div class="effort"><span class="effort-label">Effort</span><span class="effort-badge med">Medium</span></div>
+    </div>
+
+    <div class="rec-item reveal" style="animation-delay:0.3s">
+      <div class="rec-icon">📧</div>
+      <div class="rec-content">
+        <div class="rec-title">Build Newsletter Email Capture + CRM Integration</div>
+        <div class="rec-desc">Design email opt-in component and integrate with Mailchimp. Set up a welcome sequence. Requires both design and backend effort but yields long-term recurring donor pipeline.</div>
+      </div>
+      <div class="effort"><span class="effort-label">Effort</span><span class="effort-badge high">High</span></div>
+    </div>
+  </div>
+</section>
+
+<hr class="divider">
+
+<!-- ─── ROADMAP ─── -->
+<section>
+  <h2 class="section-title">3-Phase Improvement Plan</h2>
+  <p class="section-desc">A phased rollout approach to avoid disruption while steadily improving the site's effectiveness.</p>
+
+  <div class="roadmap reveal">
+    <div class="roadmap-col">
+      <div class="roadmap-head">⚡ Phase 1 — Immediate (Week 1–2)</div>
+      <div class="roadmap-item">Fix all image alt attributes across site</div>
+      <div class="roadmap-item">Update text contrast CSS variables to WCAG AA</div>
+      <div class="roadmap-item">Restyle Donate CTA button (color + size)</div>
+      <div class="roadmap-item">Add social media icons to footer</div>
+      <div class="roadmap-item">Fix broken links & 404 errors</div>
+    </div>
+    <div class="roadmap-col">
+      <div class="roadmap-head">🔧 Phase 2 — Core Fixes (Week 3–6)</div>
+      <div class="roadmap-item">Implement responsive mobile nav with hamburger</div>
+      <div class="roadmap-item">Redesign hero with impact stats + dual CTA</div>
+      <div class="roadmap-item">Add registration & certification badges</div>
+      <div class="roadmap-item">Improve page load speed (image compression)</div>
+      <div class="roadmap-item">Add keyboard focus states throughout</div>
+    </div>
+    <div class="roadmap-col">
+      <div class="roadmap-head">🚀 Phase 3 — Growth (Month 2–3)</div>
+      <div class="roadmap-item">Build & integrate email newsletter capture</div>
+      <div class="roadmap-item">Add program card hover interactions</div>
+      <div class="roadmap-item">Implement analytics & conversion tracking</div>
+      <div class="roadmap-item">A/B test hero section variants</div>
+      <div class="roadmap-item">Conduct full accessibility WCAG 2.1 AA audit</div>
+    </div>
+  </div>
+</section>
+
+<!-- ─── FOOTER ─── -->
+<footer class="site-footer">
+  <p>Foundation Website Improvement Analysis &nbsp;·&nbsp; <strong>UX Audit Report 2026</strong></p>
+  <p style="margin-top:0.5rem;font-size:0.75rem;">9 issues identified &nbsp;·&nbsp; 3-phase improvement plan &nbsp;·&nbsp; Target score after improvements: <strong style="color:var(--good);">82/100</strong></p>
+</footer>
+
+<script>
+  // Scroll reveal
+  const els = document.querySelectorAll('.reveal');
+  const obs = new IntersectionObserver((entries) => {
+    entries.forEach(e => { if(e.isIntersecting) { e.target.classList.add('in'); obs.unobserve(e.target); } });
+  }, { threshold: 0.1 });
+  els.forEach(el => obs.observe(el));
+
+  // Animate score fills on scroll
+  const scoreCards = document.querySelectorAll('.scorecard');
+  const scoreObs = new IntersectionObserver((entries) => {
+    entries.forEach(e => {
+      if(e.isIntersecting) {
+        e.target.querySelectorAll('.score-fill').forEach(f => {
+          const w = f.style.width;
+          f.style.width = '0';
+          setTimeout(() => f.style.width = w, 100);
+        });
+        const ring = e.target.querySelector('circle.fill');
+        if(ring) { ring.style.strokeDashoffset = '408'; setTimeout(() => ring.style.strokeDashoffset = '218', 100); }
+        scoreObs.unobserve(e.target);
+      }
+    });
+  }, { threshold: 0.3 });
+  scoreCards.forEach(s => scoreObs.observe(s));
+
+  // Priority bar animation
+  const priorityBars = document.querySelectorAll('.priority-fill');
+  const priorityObs = new IntersectionObserver((entries) => {
+    entries.forEach(e => {
+      if(e.isIntersecting) {
+        const w = e.target.style.width;
+        e.target.style.width = '0';
+        setTimeout(() => e.target.style.width = w, 200);
+        priorityObs.unobserve(e.target);
+      }
+    });
+  }, { threshold: 0.5 });
+  priorityBars.forEach(b => priorityObs.observe(b));
+</script>
+
+</body>
+</html>
